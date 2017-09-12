@@ -31,11 +31,11 @@ The requirements can be installed using `pip`:
 
  For the SQLite3 database, files having the extension `.sqlite3` must be executed:
 
-     $ cat monique-web/migrations/*.sqlite3 | sqlite3 /var/lib/monique.db
+     $ cat monique-web/mqeweb/migrations/*.sqlite3 | sqlite3 /var/lib/monique.db
 
 For the Cassandra database, files having the extension `.cql` must be executed:
 
-    $ for file in monique-web/migrations/*.cql; do cqlsh 127.0.0.1 -f "$file"; done
+    $ for file in monique-web/mqeweb/migrations/*.cql; do cqlsh 127.0.0.1 -f "$file"; done
 
 #### Configuring the app
 

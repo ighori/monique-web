@@ -1,0 +1,77 @@
+{% macro close_icon() %}
+    <div class=modal-closeicon>
+        <i class="modal-closeicon-icon clickable fa fa-lg fa-times" title="Close"></i>
+    </div>
+{% endmacro %}
+
+
+{% macro error_place(cls='') %}
+    <div class="modal-message displaynone {{cls}}">
+        <div class="modal-message-icon-wrap">
+            <i class="modal-message-icon fa fa-lg"></i>
+        </div>
+        <div class="modal-message-message"></div>
+    </div>
+{% endmacro %}
+
+
+{% macro modal_messagebox() %}
+    <div class="modal-frame modal-messagebox prepared displaynone">
+        {{close_icon()}}
+
+        <div class=modal-content>
+            <div class=modal-subheader><span class=messagebox-title></span></div>
+
+            <div class="messagebox-content">
+            </div>
+
+            <div class=messagebox-button-wrap>
+                <button type=button class="messagebox-button action-button">OK</button>
+            </div>
+
+        </div>
+    </div>
+{% endmacro %}
+
+
+{% macro modal_riviewer() %}
+    <div class="prepared displaynone riv-prepared selected-tag">
+        <span class=selected-tag-name></span>
+        <i class="clickable fa fa-lg fa-times"></i>
+    </div>
+
+    <div id=modal-ri-viewer class=modal-frame>
+        {{close_icon()}}
+
+        <div class=modal-content>
+            <div class=modal-subheader>Report instances: <span class=riv-report-name></span></div>
+
+            <div class="riv-modal-row">
+                <div class="riv-parsing-result-table-wrap table-hover"></div>
+                <div class="riv-info">
+                    <span class=riv-prop>Id:</span> <span class=riv-id></span>
+                    <br>
+                    <span class=riv-prop>Created:</span> <span class=riv-created></span>
+                    <span class=riv-tags-row>
+                        <br>
+                        <span class=riv-prop>Tags:</span> <span class=riv-tags></span>
+                    </span>
+                </div>
+
+                <div class="riv-arrows">
+                    <a class="riv-calendar" title="Select report instance date">
+                        <i class="clickable fa fa-lg fa-calendar"></i>
+                    </a>
+                    <a class="riv-action riv-prev clickable" title="Show previous report instance">&#8592; Previous</a>
+                    <a class="riv-action riv-next clickable" title="Show next report instance">&#8594; Next</a>
+                </div>
+            </div>
+
+            <div class="riv-filter-tags-row">
+                <div class=riv-filter-label>With tags:</div> <input id=riv-add-tag type=text>
+                <div class="tag-list-el selected-tag-list displaynone"></div>
+            </div>
+
+        </div>
+    </div>
+{% endmacro %}

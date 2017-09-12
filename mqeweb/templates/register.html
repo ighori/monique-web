@@ -1,0 +1,46 @@
+{% import "m.html" as m %}
+
+{% extends "stdbase.html" %}
+
+{% block title_ext %}Signup - {% endblock %}
+
+{% block wrapper_classes %}wrapper-maxwidth{% endblock %}
+
+{% block content %}
+    <div class=input-header>Sign up</div>
+
+    <div>
+        {{m.flashed_messages()}}
+    </div>
+
+    <form class=register-form method=post action="/register">
+        <div class=input-desc>
+            EMAIL ADDRESS
+        </div>
+        <div class=input-content>
+            <input id=register-email name=email type=email placeholder="user@example.com" required="required" autofocus>
+        </div>
+
+        <div class=input-desc>
+            PASSWORD
+        </div>
+        <div class=input-content>
+            <input id=register-password name=password type=password required="required">
+        </div>
+
+        <div class=input-desc>
+            CONFIRM PASSWORD
+        </div>
+        <div class=input-content>
+            <input id=register-confirm-password name=confirm_password type=password required="required">
+        </div>
+
+        <div class="input-content input-content-register-button">
+            <input type=submit id=register-button value="Create account">
+        </div>
+
+        {{m.stoken_input()}}
+    </form>
+
+{% endblock %}
+

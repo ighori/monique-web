@@ -1,0 +1,17 @@
+{% extends "stdbase.html" %}
+
+
+{% block navigation %}
+
+    {% if auth.is_user_logged() %}
+        {% for profile_page in PROFILE_PAGES %}
+            <li class="for-profile-link-{{profile_page}}">
+            <a class="profile-link {% if g.profile_page == profile_page %}profile-link-active{% endif %}"
+               href="/{{profile_page}}">{{ profile_page | upper }}</a>
+            </li>
+        {% endfor %}
+    {% endif %}
+
+{% endblock %}
+
+

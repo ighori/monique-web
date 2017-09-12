@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width">
+        <meta name="referrer" content="origin">
+        <meta http-equiv="X-UA-Compatible" content="IE=Edge">
+
+        <title>{% block title_ext %}{% endblock %}Monique Dashboards</title>
+
+        <link rel="stylesheet" href="/static/css/main.css">
+        <link href="https://fonts.googleapis.com/css?family=Lato:400,400i,700,700i" rel="stylesheet">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+        <link rel="shortcut icon" href="/static/img/favicon.ico">
+
+        {% block extra_head %}
+        {% endblock %}
+    </head>
+    <body>
+    <div id="header-wrap" class="{% block header_wrap_classes %}header-wrap-normal{% endblock %}">
+        <div id="header">
+            {% block header_content %}
+            <div id="logo">
+                <a class="nodecoration" href="/">
+                    <img id="logo-img" src="/static/img/monique-dashboards-logo.png" alt="Monique Dashboards">
+                </a>
+            </div>
+            <ul id="navigation" class="navigation-opts">
+                {% block navigation %}
+                {% endblock %}
+            </ul>
+            <div id="top-right" class="top-right-opts">
+                {% block top_right %}
+                {% if auth.is_user_logged() %}
+                    <div class="top-link"><a class=nodecoration href="/logout">LOGOUT</a></div>
+                    <div class="top-link"><a class="nodecoration" href="https://github.com/monique-dashboards/monique">GITHUB</a></div>
+                {% else %}
+                    <div class="top-link"><a class="nodecoration {% if g.top_page == 'login' %}top-link-active{% endif %}" href="/login">LOGIN</a></div>
+                    <div class="top-link"><a class="nodecoration {% if g.top_page == 'signup' %}top-link-active{% endif %}" href="/register">SIGNUP</a></div>
+                    <div class="top-link"><a class="nodecoration" href="https://github.com/monique-dashboards/monique">GITHUB</a></div>
+                {% endif %}
+                {% endblock %}
+            </div>
+            {% endblock %} {# header_content #}
+
+            {% block header_ext %}{% endblock %}
+        </div>
+        {% block header_wrap_ext %}{% endblock %}
+    </div>
+
+    {% block wrapper %}
+    {% endblock %}
+
+    {% block footer %}
+        <hr id="footerhr">
+        <div id="footer">
+
+            <div class=footer-closed-wrap>
+                <span>
+                    <i class="clickable fa fa-lg fa-github"></i>
+                    <a class=nodecoration href="https://github.com/monique-dashboards/monique">github.com/monique-dashboards</a>
+                </span>
+            </div>
+
+        </div>
+    {% endblock %}
+
+    <div id=lean_overlay>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-1.12.4.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/3.10.1/lodash.min.js"></script>
+
+    {% block extra_extjs %}
+    {% endblock %}
+
+    <script>
+        Mqe = {};
+        Mqe.State = {};
+        Mqe.State.context = null;
+        Mqe.State.stoken = {{(session['stoken'] or '') | tojson}};
+        Mqe.State.messageboxMessageList = {{get_messagebox_message_list() | tojson}};
+
+        Mqe.responseTimestampMillis = {{current_timestamp_millis()}};
+        Mqe.clientServerMillisDiff = (new Date().getTime()) - Mqe.responseTimestampMillis;
+        {% if auth.is_user_logged() %}
+            Mqe.userTimezoneOffset = {{user_timezone_offset_in_hours()}};
+            Mqe.dt_format = {{session.get('dt_format') | tojson}};
+        {% else %}
+            Mqe.userTimezoneOffset = 0.0;
+            Mqe.dt_format = null;
+        {% endif %}
+    </script>
+
+    <script src="/static/js/app.js"></script>
+
+    {% block pagejs %}
+    {% endblock %}
+
+    </body>
+</html>

@@ -1,0 +1,50 @@
+{% import "m.html" as m %}
+{% import "modals.html" as modals %}
+
+{% extends "profilebase.html" %}
+
+{% block title_ext %}Reports - {% endblock %}
+
+{% block wrapper_classes %}wrapper-maxwidth{% endblock %}
+
+{% block content %}
+
+    {{modals.modal_riviewer()}}
+    {{modals.modal_messagebox()}}
+
+    <div id=rep-wrap>
+
+    <div id=rep-filter-wrap>
+        <input id=rep-filter-input type=text placeholder="Enter report name prefix">
+        <div id=rep-filter-button-wrap>
+            <button type=button id=rep-filter-button>Filter</button>
+        </div>
+    </div>
+
+
+    <div id=rep-reports-wrap>
+        {{ m.reports_list_page(report_list, filter_s, has_next) }}
+    </div>
+
+    </div>
+
+{% endblock %}
+
+
+{% block pagejs %}
+    <script src="/static/js/reports.js"></script>
+
+    <script>
+        Mqe.Rep.setup();
+    </script>
+{% endblock %}
+
+{% block extra_head %}
+    <link rel="stylesheet" href="/static/ext/jquery-ui-1.11.4.custom/jquery-ui.css">
+{% endblock %}
+
+{% block extra_extjs %}
+    <script src="/static/ext/jquery-ui-1.11.4.custom/jquery-ui.js"></script> 
+    <script src="/static/ext/jquery.ui.touch-punch.min.js"></script>
+{% endblock %}
+

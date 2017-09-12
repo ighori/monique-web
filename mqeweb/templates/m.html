@@ -1,0 +1,357 @@
+{% macro data_attrs(d) -%}
+    {% if d %}
+        {% for k, v in d.items() -%}
+            data-{{k}}='{{ v | tojson }}' 
+        {% endfor %}
+    {% endif -%}
+{% endmacro -%}
+
+{% macro flashed_messages() %}
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+          {% for message in messages %}
+              <div class="flashed-message">
+                  <i class="modal-message-icon fa fa-lg fa-exclamation-circle"></i>
+                  {{message}}
+              </div>
+          {% endfor %}
+        {% endif %}
+    {% endwith %}
+{% endmacro %}
+
+{% macro stoken_input() %}
+    <input type=hidden name=stoken value='{{session['stoken']}}'>
+{% endmacro %}
+
+{% macro select(cls, options, selected=None, attrs='') %}
+    <select class="{{cls}}" {{attrs}}>
+        {% for val, display in options %}
+            <option value="{{val}}" {% if selected == val %}selected{% endif %}>{{display}}</option>
+        {% endfor %}
+    </select>
+{% endmacro %}
+
+{% macro range_drawer_select(selected=None) %}
+    {{ select('range-drawer-select', RANGE_VISUALIZATION_OPTIONS.items(), selected) }}
+{% endmacro %}
+
+{% macro single_drawer_select(selected=None) %}
+    {{ select('single-drawer-select', SINGLE_VISUALIZATION_OPTIONS.items(), selected) }}
+{% endmacro %}
+
+{% macro db_tab(db, active, hide=False) %}
+    <div class="db-tab clickable {% if active %}db-tab-active{% else %}db-tab-inactive{% endif %} {% if hide %}displaynone{% endif %}" data-dashboard-id='{{db.dashboard_id | tojson}}' data-dashboard-name="{{db.dashboard_name}}" data-dashboard-options='{{db['dashboard_options']}}'>
+        <a class="db-tab-a nodecoration" href="/dashboard/{{db.dashboard_id.hex}}/{{db.dashboard_name}}">{{ db.dashboard_name }}</a>
+    </div>
+{% endmacro %}
+
+{% macro dashboard(db, layout_id, layout_dict, hide=False, onboarding=False) %}
+    <div class="db-wrap {% if hide %}visibilityhidden{% endif %}">
+
+        {% if onboarding  %}
+            <div class="dbmessage">
+                <i class="fa fa-lg fa-database"></i>
+                You haven't sent any report yet. To get started, try running a sample command: 
+                <div class=code>
+                df | curl --user <span class=api-key-value>{{api_key()}}</span>: --request POST --data-binary @- '{{webconfig.BASE_URL_API}}/reports/diskfree?autotags=ip'
+                </div>
+                After doing it, click "Add Report".
+            </div>
+
+        {% elif not layout_dict %}
+            <div class="dbmessage">
+                <i class="fa fa-lg fa-file-o"></i>
+                Empty dashboard. Click "Add Report" to add a tile.
+            </div>
+        {% endif %}
+
+        <div class="grid-stack"
+             data-layout-id='{{layout_id | tojson}}'
+             data-dashboard-id='{{db.dashboard_id | tojson}}'>
+            {% for tile_id in layout_dict %}
+                {{ dashboard_tile(tile_id, layout_dict[tile_id]) }}
+            {% endfor %}
+        </div>
+    </div>
+{% endmacro %}
+
+{% macro dashboard_tile(tile_id, visual_options, moveresize=False) %}
+    {% if tile_id and visual_options %}
+    <div class="grid-stack-item tile" data-gs-x="{{visual_options.x}}" data-gs-y="{{visual_options.y}}" data-gs-width="{{visual_options.width}}" data-gs-height="{{visual_options.height}}" data-gs-no-move="{{(not moveresize)|tojson}}" data-gs-no-resize="{{(not moveresize)|tojson}}" data-tile-id='{{tile_id | tojson}}' data-original-visual-options='{{ visual_options | tojson }}'>
+        <div class="grid-stack-item-content">
+            <div class=tw>
+            </div>
+            <div class=tw-bar>
+                <i class="tw-icon tw-icon-settings tw-icon-settings-visibility clickable fa fa-bars fa-lg"></i>
+                <div class=tw-chart-title></div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+{% endmacro %}
+
+
+{% macro column_select(report_instance, selected_idx=None, cls='', include_virtual=False, attrs='', include_all_headers=False) %}
+    <select class="column-select {{cls}}" {{attrs}}
+        {% if include_all_headers %}
+            data-all-headers='{{report_instance.table.all_headers | tojson}}'
+        {% endif %}
+    >
+        {% if include_virtual %}
+            <option value='{{report_instance.table.column_spec(-1) | tojson}}' {% if selected_idx == -1 %}selected{% endif %}>
+            - (<span class=pr-header>Row number</span>)
+            </option>
+        {% endif %}
+        {% for i in range(report_instance.table.num_columns) %}
+            {% set header = report_instance.table.header(i) %}
+            <option value='{{report_instance.table.column_spec(i) | tojson}}' {% if i == selected_idx %}selected{% endif %}>
+                {{i}}
+                {% if header %}
+                    (<span class=pr-header>{{header}}</span>)
+                {% endif %}
+            </option>
+        {% endfor %}
+    </select>
+{% endmacro %}
+
+{% macro filtering_ops_select(selected_op=None) %}
+    <select class=filtering-ops-select>
+        {% for op, display in [('eq', 'equals'), ('contains', 'contains')] %}
+            <option value="{{op}}" {% if selected_op == op %}selected{% endif %}>{{display}}</option>
+        {% endfor %}
+    </select>
+{% endmacro %}
+
+{% macro series_spec(ss, report_instance, data_d=None) %}
+    {% set hidden_params = {
+        'static_name': ss.params.get('static_name'),
+    } %}
+
+    <div class="series-spec series-spec-like" data-hidden-params='{{ hidden_params | tojson }}' {{data_attrs(data_d)}}>
+        select column {{column_select(report_instance, ss.actual_data_colno(report_instance), 'data-select', include_all_headers=True)}}
+        {% if ss.actual_filtering_colno(report_instance) is not none %}
+            where column {{column_select(report_instance, ss.actual_filtering_colno(report_instance), 'filtering-select', True)}}
+            {{filtering_ops_select(ss.params.filtering_expr.op)}}
+            <input class="series-spec-input filtering-expr-input" type=text value="{{ss.params.filtering_expr.args[0]}}" title="{{ss.params.filtering_expr.args[0]}}">
+        {% endif %}
+            using name
+            {% set name = ss.name() %}
+            <input class="series-spec-input series-spec-name-input" type=text value="{{name}}" title="{{name}}">
+        {#<a class="clickable series-spec-a series-spec-delete">Delete</a>#}
+        <i class="series-spec-delete clickable fa fa-times fa-lg" title="Delete"></i>
+    </div>
+{% endmacro %}
+
+{% macro series_spec_creator_spec(sscs, report_instance) %}
+    <input type=checkbox class=sscs-cb checked
+     data-sscs='{{ sscs | tojson }}'
+     data-sscs-actual='{{ dict(actual_data_colno=sscs.actual_data_colno(report_instance), actual_filtering_colno=sscs.actual_filtering_colno(report_instance)) | tojson }}'>
+    create new series for column {{column_select(report_instance, sscs.actual_data_colno
+    (report_instance), 'data-select',
+        attrs='disabled')}}
+    by column {{column_select(report_instance, sscs.actual_filtering_colno(report_instance), 'filtering-select', True,
+        attrs='disabled')}}
+{% endmacro %}
+
+{% macro tag_sample(tags) %}
+    {% if tags %}
+        Sample: 
+        {% for tag in tags %}
+            <a class="sample-tag-name clickable" data-name='{{tag}}'>{{tag}}</a>
+        {% endfor %}
+    {% else %}
+        No tags.
+    {% endif %}
+{% endmacro %}
+
+{% macro table_as_html_table(table) %}
+    <table class=parsing-result-table>
+        {% if table.header_idxs %}
+            <thead>
+                {% for rowno in table.header_idxs %}
+                    <tr>
+                        {% for ev in table.rows[rowno] %}
+                            <td data-rowno='{{rowno}}' data-colno='{{loop.index0}}'>
+                                {{ ev.to_string_key() }}
+                            </td>
+                        {% endfor %}
+                    </tr>
+                {% endfor %}
+            </thead>
+        {% endif %}
+        <tbody>
+            {% for rowno in table.value_idxs %}
+                <tr>
+                    {% for ev in table.rows[rowno] %}
+                        <td data-rowno='{{rowno}}' data-colno='{{loop.index0}}'>
+                            {{ ev.to_string_key() }}
+                        </td>
+                    {% endfor %}
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endmacro %}
+
+{% macro selected_tags(tags) %}
+    {% for tag in tags %}
+        <div class="selected-tag">
+            <span class=selected-tag-name>{{tag}}</span>
+        </div>
+    {% endfor %}
+{% endmacro %}
+
+{% macro tpcreator_content(tpcreator_uispec) %}
+    <div class=tpcreator-content-header>
+        Select a prefix of a tag that must match in order to create a new tile
+    </div>
+    {% for d in tpcreator_uispec %}
+        <div class=tpcreator-content-row>
+            <div class=tpcreator-tag-name>
+                <span class=selected-tag-name>{{d.tag}}</span>
+            </div>
+            <div class=modal-input>
+                <select class=tpcreator-select>
+                    {% for prefix in tpcreator_prefixes(d.tag) %}
+                        <option value='{{dict(tag=d.tag, prefix=prefix) | tojson}}'
+                        {% if d.prefix == prefix %}selected{% endif %}
+                    >
+                            {% if prefix == '' %}
+                                *
+                            {% elif prefix == d.tag %}
+                                {{prefix}}
+                            {% else %}
+                                {{prefix}}*
+                            {% endif %}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+    {% endfor %}
+{% endmacro %}
+
+
+{% macro recent_reports(names) %}
+    {% if names %}
+        Sample: 
+        {% for name in names %}
+            <a class="recent-report-name clickable" data-name='{{name}}'>{{name}}</a>
+        {% endfor %}
+    {% else %}
+        No reports.
+    {% endif %}
+        <a class="nodecoration clickable refresh-recent-reports">
+            <i title="Refresh" class="fa fa-refresh fa-lg"></i>
+        </a>
+{% endmacro %}
+
+
+{% macro tile_data_as_table(data, series_data_as_rows) %}
+    <div class=tile-data-table-wrap>
+        <table class="tile-data-table" data-series-ids='{{ data.series_data | map(attribute='series_id') | list | tojson }}'>
+            <thead>
+                <tr>
+                    <td class=clickable>
+                        Date <i class="sort-icon fa fa-caret-down fa-lg"></i>
+                    </td>
+                    {% for series_dict in data.series_data %}
+                        <td class="clickable">{{series_dict.name}}</td>
+                    {% endfor %}
+                </tr>
+            </thead>
+            <tbody>
+                <tr class="displaynone prepared">
+                    <td data-series-index='-1' data-filled="true"></td>
+                    {% for series_dict in data.series_data %}
+                        <td style='{{style_for_series(data, loop.index0)}}' data-series-index='{{loop.index0}}' data-filled="false"></td>
+                    {% endfor %}
+                </tr>
+                {% for (rid, dt), value_by_series_index in series_data_as_rows | reverse %}
+                    <tr data-id='{{rid | tojson}}'>
+                        <td data-series-index='-1'
+                            data-numeric-value='{{datetime_to_timestamp(dt) | tojson}}'
+                            >{{format_datetime(dt)}}</td>
+                        {% for series_dict in data.series_data %}
+                            {% set has_data = loop.index0 in value_by_series_index %}
+                            <td class="tile-data-table-td" data-series-index='{{loop.index0}}' data-filled="{{'true' if has_data else 'false'}}">
+                                {% if has_data %}
+                                    {{ to_displayable_html(value_by_series_index[loop.index0],
+                                            style_for_series(data, loop.index0)) }}
+                                {% endif %}
+                            </td>
+                        {% endfor %}
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endmacro %}
+
+
+{% macro tile_data_as_single_text(data, all_empty) %}
+    {% if all_empty %}
+        <div class="tw-contenttext-wrap">
+            <div class="tw-contenttext">
+                <em>No data to display</em>
+            </div>
+        </div>
+    {% else %}
+    <div class=tile-data-single-text-wrap>
+        {% for d in data.series_data %}
+            {% if d.data_points %}
+                <div class=single-series-point-wrap>
+                <div class="single-series-point {% if not loop.last %}single-series-point-inner{% endif %}"
+                     data-series-index='{{loop.index0}}'
+                     title="Date: {{ format_datetime(d.data_points[0].dt) }}"
+                      >
+                    {% set extra_class = 'single-series-value-em' if not is_value_formatted(d.data_points[0].value) else '' %}
+                    {% if data.series_data | length > 1 %}
+                        <div class=single-series-name style='{{ style_for_series(data, loop.index0) }}'>{{d.name}}</div>
+                        <div class="single-series-value {{extra_class}}">{{ to_displayable_html(d.data_points[0].value, style_for_series(data, loop.index0)) }}</div>
+                    {% else %}
+                        <div class="single-series-value">{{ to_displayable_html(d.data_points[0].value, style_for_series(data, loop.index0)) }}</div>
+                    {% endif %}
+                </div>
+                </div>
+            {% endif %}
+        {% endfor %}
+    </div>
+    {% endif %}
+{% endmacro %}
+
+
+{% macro reports_list_page(report_list, filter_s, has_next) %}
+    {% if not report_list %}
+        <div id=rep-reports>
+            <span class=rep-highlight>No reports.</span>
+        </div>
+    {% else %}
+        <div id=rep-reports data-filter-s='{{filter_s | todata}}' data-last-report-id='{{report_list[-1].report.report_id | tojson}}'>
+        {% for report_d in report_list %}
+            <div class=rep-item data-report-name='{{report_d.report.report_name}}'>
+                <div class="rep-item-entry rep-item-report-name" title="Report: {{report_d.report.report_name}}">{{report_d.report.report_name}}</div>
+                <div class=rep-item-props>
+                    {% set num, text = report_d.latest_instance_dt | timeago %}
+                    <div class="rep-item-heartbeat hr-color-{{num}}">
+                        <i title="Latest instance created" class="fa fa-heartbeat fa-lg"></i>
+                        <span title="{{format_datetime(report_d.latest_instance_dt)}}">{{text}}
+                            ago</span>
+                    </div>
+                    <div class="rep-item-instances clickable" title="Total number of instances / space used">
+                        <i class="fa fa-database fa-lg"></i>
+                        <a class="udecoration">
+                            {{report_d.report.report_instance_count()}}
+                            /
+                            {{report_d.report.report_instance_diskspace() | filesizeformat }}
+                        </a>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+        {% if has_next %}
+            <a class="rep-next clickable" title="Load next reports">&#8594; Next</a>
+        {% endif %}
+        </div>
+    {% endif %}
+{% endmacro %}

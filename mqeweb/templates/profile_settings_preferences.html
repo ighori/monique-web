@@ -1,0 +1,134 @@
+{% import "m.html" as m %}
+{% import "modals.html" as modals %}
+
+{% extends "profilebase.html" %}
+
+{% block title_ext %}Settings / Preferences - {% endblock %}
+
+{% block wrapper_classes %}wrapper-maxwidth{% endblock %}
+
+{% block content %}
+    {{ modals.modal_messagebox() }}
+
+    <div class=flashed-wrap>
+        {{m.flashed_messages()}}
+    </div>
+
+    <div>
+        <div class=inner-subheader>TEAM:</div>
+    </div>
+    <div class="inner-section">
+
+        <div class=settings-row>
+            <div class=settings-label>
+                Your email:
+            </div>
+            <div class=settings-value>
+                <span class=ps-em-strong>{{ user_row.email }}</span>
+            </div>
+        </div>
+    </div>
+
+    <div>
+        <div class=inner-subheader>API KEY:</div>
+    </div>
+    <div class="inner-section">
+        <input type=text class=ps-api-key readonly="readonly" value='{{api_key}}'>
+        <div class=ps-key-reissue-wrap>
+            <button class=ps-key-reissue type=button>Reissue</button>
+        </div>
+        <div class="ps-key-reissue-conf-wrap displaynone">
+            This action will invalidate the existing API key. Please confirm.
+            <form class=ps-key-reissue-form method=post action="/settings/preferences/reissue-api-key">
+                <input type=submit value="Confirm">
+                {{m.stoken_input()}}
+            </form>
+        </div>
+
+        <div class=settings-extrainfo>
+            Sample curl invocation:
+            <br>
+            <!--<code>-->
+                df | curl --user <span class=api-key-value>{{api_key}}</span>: --request POST --data-binary @- '{{webconfig.BASE_URL_API}}/reports/diskfree'&nbsp; 
+            <!--</code>-->
+        </div>
+    </div>
+
+
+    <div>
+        <div class=inner-subheader>DATA USAGE:</div>
+    </div>
+    <div class="inner-section">
+        <div class="modal-input ps-pu">
+            <div class=ps-pu-instances title="Total number of report instances / disk space used">
+                <div class=settings-row>
+                    <div class=settings-label>Instances:</div>
+                    <div class=settings-value>
+                        {{used_report_instances}} 
+                    </div>
+                </div>
+                <div class=settings-row>
+                    <div class=settings-label>Disk space:</div>
+                    <div class=settings-value>
+                        {{used_diskspace | filesizeformat }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <form method=post action="/settings/preferences">
+
+    <div>
+        <div class=inner-subheader>TIME:</div>
+    </div>
+    <div class="inner-section">
+        <div class=settings-row>
+        <div class=settings-label>
+            Timezone:
+        </div>
+        <div class=settings-value>
+            <select name=timezone class=ps-timezone-s>
+                {% for tz in all_timezones %}
+                    <option value='{{tz}}' {% if tz == selected_timezone %}selected{% endif %}>
+                        {{tz}}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+        </div>
+
+        <div class=settings-label>
+            Time format:
+        </div>
+        <div class=modal-input>
+            <select name=dt_format class=ps-dt-format-s>
+                {% for (dt_format, desc) in all_dt_formats %}
+                    <option value='{{dt_format}}' {% if dt_format == selected_dt_format %}selected{% endif %}>
+                        {{desc}}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+
+    <div class=settings-button-wrap>
+        <input type=submit class=ps-apply-button value="Apply">
+    </div>
+
+    {{m.stoken_input()}}
+
+    </form>
+
+{% endblock %}
+
+
+{% block pagejs %}
+    <script src="/static/js/settings.js"></script>
+
+    <script>
+        Mqe.Messagebox.showFromSession();
+        Mqe.Settings.setupPreferences();
+    </script>
+{% endblock %}
+

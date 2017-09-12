@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+
+{% block wrapper %}
+    <div class="wrapper-wrap">
+        <div class="wrapper {% block wrapper_classes %}{% endblock %}">
+            <div class="block-content-wrap">
+                <div class="block-content">
+                    {% block content %}{% endblock %}
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

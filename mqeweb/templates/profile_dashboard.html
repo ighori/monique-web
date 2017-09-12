@@ -1,0 +1,419 @@
+{% import "m.html" as m %}
+{% import "modals.html" as modals %}
+
+{% extends "profilebase.html" %}
+
+{% block title_ext %}Dashboards - {% endblock %}
+
+{% macro seconds_back_input(num_value='7', unit_value='days', before_html='last', attrs='') %}
+    {{before_html}}
+    <input type=number step=any min=0 name=tw-type-range-numback value="{{num_value}}" {{attrs}}>
+    {{ m.select('back-unit', [
+       ('days', 'days'),
+       ('hours', 'hours'),
+       ('minutes', 'minutes'),
+       ], unit_value, attrs=attrs) }}
+{% endmacro %}
+
+
+{% macro render_modals() %}
+
+    <div class="prepared displaynone loading-error">
+        <div class="tw-contenttext-wrap">
+            <div class="tw-contenttext tw-error">
+                Something went wrong - data couldn't be loaded
+            </div>
+        </div>
+    </div>
+    
+    <div class="prepared displaynone waiting-for-load">
+        <div class="tw-contenttext-wrap">
+            <div class="tw-contenttext">
+                Loading 
+                <span class=loading-dots-wrap>
+                    {% for i in range(3) %}
+                        <span class=loading-dot>.</span>
+                    {% endfor %}
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <div class="prepared displaynone tile-not-found-error">
+        <div class="tw-contenttext-wrap">
+            <div class="tw-contenttext">
+                The tile does not belong to the current version of the dashboard. Please refresh
+                the page.
+            </div>
+        </div>
+    </div>
+
+    <div class="prepared displaynone chart-error">
+        <div class="tw-contenttext-wrap">
+            <div class="tw-contenttext tw-error">
+                Cannot graph current values. "Draw as" setting can be changed to text when displaying non-numeric values.
+            </div>
+        </div>
+    </div>
+
+    <div class="prepared displaynone selected-tag">
+        <span class=selected-tag-name></span>
+        <i class="clickable fa fa-lg fa-times"></i>
+    </div>
+
+    <div id=modal-add-dashboard class=modal-frame>
+        {{modals.close_icon()}}
+        <div class=modal-content>
+            <div class=modal-subheader>
+                Add new dashboard
+            </div>
+            <div class=modal-row>
+                <div class=modal-label><label for=add-dashboard-name>Name:</label></div>
+                <div class=modal-input><input id=add-dashboard-name type=text></div>
+            </div>
+
+            <div>
+                <button type=button id=add-dashboard-button>Add</button>
+            </div>
+
+            {{modals.error_place()}}
+        </div>
+    </div>
+
+
+    <div id=modal-add-report class=modal-frame>
+        {{modals.close_icon()}}
+        <div class=modal-content>
+            <div class=modal-subheader>Add report</div>
+
+            <div class=modal-row>
+                <div class=modal-label><label for=add-report-name>Report:</label></div>
+                <div class=modal-input>
+                    <input id=add-report-name type=text>
+                </div>
+
+                <div class=modal-label>&nbsp;</div>
+                <div class="modal-input add-report-recent">
+                </div>
+            </div>
+
+            <div class="modal-row tags-row displaynone">
+                <div class=modal-label><label for=add-tag>Tags:</label></div>
+                <div class=modal-input>
+                    <input id=add-tag type=text>
+                </div>
+
+                <div class=modal-label>&nbsp;</div>
+                <div class="modal-input add-tag-sample"></div>
+
+                <div class="tag-list-el modal-label displaynone">&nbsp;</div>
+                <div class="tag-list-el modal-input selected-tag-list displaynone"></div>
+            </div>
+
+            <div class="modal-row spec-def displaynone"> 
+                <div class="modal-textline text-values-from">Select values to graph:</div>
+                <div class="parsing-result-table-wrap add-report-range-newest table-hover table-clickable"></div>
+                <div class="modal-textline text-your-selection"><a class="clickable
+                show-specification">Show series specifications</a></div>
+                <div class="series-spec-all displaynone">
+                    <div class="series-spec-wrap"></div>
+                    <div class="series-spec-like series-spec-creator-spec"></div>
+                    <div class="series-spec-after">
+                        <a class="series-spec-add clickable" title="Add">Add</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-row tile-options displaynone">
+                <div class="modal-label vcenter-1">
+                    Data from:
+                </div>
+                <div class="modal-input">
+                    <input type=radio name=tw-type id=tw-type-range value="Range" checked>
+                    <label for=tw-type-range>
+                        {{ seconds_back_input() }}
+                    </label>
+                    <br>
+                    <input type=radio name=tw-type id=tw-type-single value="Single"> <label for=tw-type-single>a newest report</label>
+                </div>
+            </div>
+
+            <div>
+                <button type=button id=add-report-button>Add</button>
+            </div>
+
+            {{modals.error_place()}}
+        </div>
+    </div>
+
+
+
+    <div id=modal-tile-settings class=modal-frame>
+        {{modals.close_icon()}}
+        <div class=modal-content>
+            <div class=modal-subheader>Tile settings: <span id=ts-report-name></span></div> 
+
+            <div class=modal-row>
+                <div class=modal-label>Actions:</div>
+                <div class=modal-input>
+                    <button class="action-button ts-action" type=button id=ts-move-button>Move</button>
+                    <button class="action-button ts-action" type=button id=ts-delete-button>Delete</button>
+                </div>
+            </div>
+
+            <div class="modal-row tag-list-row displaynone">
+                <div class=modal-label>Tags:</div>
+                <div class="modal-input selected-tag-list"></div>
+            </div>
+
+            <div class="modal-row spec-def"> 
+                <div class="modal-textline text-values-from">Select values to graph:</div>
+                <div class="parsing-result-table-wrap add-report-range-newest table-hover table-clickable"></div>
+                <div class="modal-textline text-your-selection"><a class="clickable
+                show-specification">Show series specifications</a></div>
+                <div class="series-spec-all displaynone">
+                    <div class="series-spec-wrap"></div>
+                    <div class="series-spec-like series-spec-creator-spec"></div>
+                    <div class="series-spec-after">
+                        <a class="series-spec-add clickable" title="Add">Add</a>
+                    </div>
+                </div>
+            </div>
+
+
+                <div class=modal-row>
+                    <div class=modal-label>
+                        Data from:
+                    </div>
+                    <div class=modal-input id=ts-series-spec-type>
+                        <div class="tw-specific displaynone" data-tw-type="Range">
+                            {{ seconds_back_input() }}
+                        </div>
+                        <div class="tw-specific displaynone text-value" data-tw-type="Single">
+                            a newest report
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-row tile-options">
+                    <div class=modal-label>
+                        Title:
+                    </div>
+                    <div class="modal-input modal-input-long">
+                        <input type=text id=tw-range-graph-title name=graph-title>
+                    </div>
+                </div>
+
+            <div class="tw-specific displaynone" data-tw-type='Range'>
+                <div class="modal-row tile-options">
+                    <div class=modal-label>
+                        Draw as:
+                    </div>
+                    <div class=modal-input>
+                        {{ m.range_drawer_select() }}
+                    </div>
+                </div>
+            </div>
+
+            <div class="tw-specific displaynone" data-tw-type='Single'>
+                <div class="modal-row tile-options">
+                    <div class=modal-label>
+                        Draw as:
+                    </div>
+                    <div class=modal-input>
+                        {{ m.single_drawer_select() }}
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-row tile-options">
+                <div class=modal-label>
+                    Colors:
+                </div>
+                <div class="modal-input colors">
+                    <div class="delete-color-wrap displaynone">
+                        <i class="delete-color clickable fa fa-lg fa-times" title="Delete color"></i>
+                    </div>
+                    <div class=add-color-wrap>
+                        <i class="add-color clickable fa fa-lg fa-plus" title="Add custom color"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-row tpcreator-row displaynone">
+                <div class=modal-input>
+                    <input type=checkbox id=tpcreator-cb>
+                    <label for=tpcreator-cb>Create dashboard tiles for similar tags</label>
+                </div>
+
+                <div class="tpcreator-content displaynone"></div>
+            </div>
+
+            <div class="modal-row tpcreator-info displaynone">
+                This tile was created from a template tile.
+            </div>
+
+            <div>
+                <button type=button id=tile-settings-apply-button>Apply</button>
+            </div>
+
+            {{modals.error_place()}}
+        </div>
+    </div>
+
+
+
+    <div id=modal-move-tile class=modal-frame>
+        {{modals.close_icon()}}
+        <div class=modal-content>
+            <div class=modal-subheader>Move tile: <span class=mt-report-name></span></div> 
+
+            <div class=modal-row>
+                Move to dashboard:
+                <div class="modal-input mt-dashboard-select">
+                </div>
+            </div>
+
+            <div>
+                <button type=button class=mt-apply-button>Apply</button>
+            </div>
+
+            {{modals.error_place()}}
+        </div>
+    </div>
+
+
+
+    <div id=modal-dashboard-settings class=modal-frame>
+        {{modals.close_icon()}}
+        <div class=modal-content>
+            <div class=modal-subheader>Dashboard settings</div> 
+
+            <div class=modal-row>
+                <div class=modal-label>Actions:</div>
+                <div class=modal-input>
+                    <button class="action-button ds-action" type=button id=ds-delete-button>Delete</button>
+                </div>
+            </div>
+
+            <div class=modal-row>
+                <div class=modal-label><label for=ds-name>Name:</label></div>
+                <div class=modal-input><input id=ds-name type=text></div>
+            </div>
+
+            <div class=modal-row>
+                <div class=ds-back-row>
+                    <input type=checkbox id=ds-max-without-data-cb>
+                    <label for=ds-max-without-data-cb>Delete tiles having no new data for:</label>
+                </div>
+                <div class="ds-back-wrap">
+                    {{seconds_back_input(before_html='', attrs='disabled')}}
+                </div>
+            </div>
+
+            <div class=modal-row>
+                <div class=ds-cb-row>
+                    <input type=checkbox id=ds-enable-synchronizing-tpcreated>
+                    <label for=ds-enable-synchronizing-tpcreated>Synchronize Y axes of auto-created tiles</label>
+                </div>
+            </div>
+
+            <div class=modal-row>
+                <div class=ds-cb-row>
+                    <input type=checkbox id=ds-enable-synchronizing-tpcreated-x-axes>
+                    <label for=ds-enable-synchronizing-tpcreated-x-axes>Synchronize X axes of auto-created tiles</label>
+                </div>
+            </div>
+
+            <div>
+                <button type=button id=ds-button>Apply</button>
+            </div>
+
+            {{modals.error_place()}}
+        </div>
+        <div class=modal-content>
+
+            {{modals.error_place()}}
+        </div>
+    </div>
+
+
+    {{modals.modal_messagebox()}}
+
+{% endmacro %}
+
+
+{% block header_wrap_ext %}
+    <div class=db-bar-wrap>
+
+    <div class=db-tabbar>
+        <div class=db-tablist>
+            <div class=db-tablist-tabs>
+                {% for db in dashboards.dashboards %}
+                    {{ m.db_tab(db, db.dashboard_id == active_db_id) }}
+                {% endfor %}
+            </div>
+
+            <div class=db-tab-icon-wrap><i class="db-add-dashboard clickable fa fa-lg fa-plus" title="Add Dashboard"></i></div>
+        </div>
+    </div>
+
+    <div class=db-action-bar>
+        <div class="db-action db-action-inactive" id="db-action-addreport">
+            <i class="fa fa-lg fa-bar-chart" title="Add Report"></i>
+            Add Report
+        </div>
+        <div class="db-action db-action-inactive" id="db-action-settings">
+            <i class="fa fa-lg fa-th" title="Dashboard Settings"></i>
+            Dashboard Settings
+        </div>
+        <div class="db-action db-action-inactive" id="db-action-moveresize">
+            <i class="fa fa-lg fa-arrows" title="Move / Resize Tiles"></i>
+            Move / Resize
+        </div>
+        <div class="db-action db-action-inactive" id="db-action-fullscreen">
+            <i class="fa fa-lg fa-expand" title="Full Screen"></i>
+            Full Screen
+        </div>
+    </div>
+
+    </div>
+
+{% endblock %}
+
+
+{% block content %}
+
+    {{ render_modals() }}
+
+    {{ m.dashboard(dashboards.dashboard_by_id[active_db_id], active_db_layout_id,
+    active_db_layout_dict, onboarding=onboarding) }}
+
+    <div id="db-after-db"></div>
+
+{% endblock %}
+
+
+{% block pagejs %}
+    <script src="/static/js/dashboard.js"></script>
+    <script src="/static/js/tilewidgets.js"></script>
+
+    <script>
+        Mqe.State.onboarding = {{onboarding | tojson}};
+        Mqe.Db.setup();
+    </script>
+{% endblock %}
+
+{% block extra_head %}
+    <link rel="stylesheet" href="/static/ext/jquery-ui-1.11.4.custom/jquery-ui.css">
+    <link rel="stylesheet" href="/static/ext/gridstack.css">
+{% endblock %}
+
+{% block extra_extjs %}
+    <script src="/static/ext/jquery-ui-1.11.4.custom/jquery-ui.min.js"></script>
+    <script src="/static/ext/jquery.ui.touch-punch.min.js"></script>
+    <script src="/static/ext/gridstack.js"></script>
+    <script src="/static/ext/moment.min.js"></script>
+    <script src="/static/ext/chartjs-2.6.0.js"></script>
+{% endblock %}
+

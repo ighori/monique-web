@@ -1,6 +1,6 @@
 # Monique Web
 
-![Monique Web screenshot](http://monique-dashboards.readthedocs.io/en/latest/_images/_images/monique-web-1.png)
+![Monique Web screenshot](http://monique-dashboards.readthedocs.io/en/latest/_images/monique-web-1.png)
 
 Monique Web is a fully featured web application supporting creating custom dashboards, built using [Monique library](https://github.com/monique-dashboards/monique) and taking advantage of the library's features:
 

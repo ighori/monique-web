@@ -5,7 +5,7 @@ import cgi
 
 import markdown
 
-from mqe.pars import enrichment
+from mqetables import enrichment
 from mqe import serialize
 from mqe.util import safeget
 from mqe import mqeconfig
@@ -151,9 +151,9 @@ def to_displayable_html(val, style=None, _level=0):
 
 
 def setup_custom_types():
-    from mqe.pars import parseany
-    from mqe.pars import basicparsing
-    from mqe.pars.enrichment import EnrichedTable
+    from mqetables import parseany
+    from mqetables import basicparsing
+    from mqetables.enrichment import EnrichedTable
 
     def get_table_from_parsing_result(parsing_result):
         if not parsing_result.table:

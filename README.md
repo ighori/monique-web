@@ -23,6 +23,8 @@ Monique Web isn't available on PyPI, but can be run from a git clone:
 The requirements can be installed using `pip`:
 
     $ pip install -r monique-web/requirements.txt
+    
+Note that there might be compatibility issues between `simplejson` versions and the JSON serialization implemented by the app. The safest way is to install the app in a virtualenv and ensure the `simplejson` package is not installed.
 
 
 #### Executing database migrations

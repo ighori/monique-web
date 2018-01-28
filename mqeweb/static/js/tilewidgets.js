@@ -352,7 +352,7 @@ Mqe.Tw.ChartBaseDrawer.prototype.setAxisMinMax = function(axis, min, max) {
     if (axis == 'y') {
         axisObject['ticks']['min'] = min;
         axisObject['ticks']['max'] = max;
-    } else {
+    } else if (axisObject['time']) {
         axisObject['time']['min'] = min;
         axisObject['time']['max'] = max;
     }
